@@ -32,17 +32,17 @@ process_dir() {
 
     I=1
     for file in `find $1 -name "*.fasta" -type f`; do
-        echo "> PROCESSING [$I] [$file]"
+        echo "PROCESSING [$I] [$file]"
         fstart=`date +%s`
-        #bash -e -x calc_conservation.sh $file $2 $3 $4 
+        bash -e -x calc_conservation.sh $file $2 $3 $4 
 
         fend=`date +%s`
-        fruntime=$((end-start))
+        fruntime=$((fend-fstart))
         if [ $? -eq 0 ]; then
-            echo DONE [`format_time fruntime`]
+            echo DONE (`format_time fruntime`)
             echo $file > $2/done.list
         else
-            echo FAILED [`format_time fruntime`]
+            echo FAILED (`format_time fruntime`)
             echo $file > $2/failed.list
         fi
         ((I++))
