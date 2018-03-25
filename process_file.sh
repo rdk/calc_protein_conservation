@@ -58,7 +58,7 @@ process_file() {
   fi
 }
 
-process_file > $LOGFILE
+process_file | tee $LOGFILE
 
 
 
