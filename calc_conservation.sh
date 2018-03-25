@@ -18,7 +18,7 @@ mkdir -p $outdir/scores
 
 file_base=$(basename "$file")
 alignments_file="$outdir/alignments/$file_base.ali"
-scores_file="$outdir/scores/$file_base.scores"
+scores_file="$outdir/scores/$file_base.hom"
 
 # Create bunch of temp files.
 blastResFile=$(tempfile)

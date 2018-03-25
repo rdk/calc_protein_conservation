@@ -7,16 +7,15 @@
 # $2 ... outdir (doesn't have to exist)
 # $3 ... psiblast evalue
 # $4 ... psiblast num_iterations
+# $5 ... threads
 #
 
 DIR=$1
 OUT=$2
 E=$3
 ITER=$4
+THREADS=$5
 
-print() {
-    echo $@ | tee -a $OUT/main.log    
-}
 
 format_time() {
   local T=$1
@@ -31,43 +30,23 @@ format_time() {
   printf '%d s\n' $S
 }
 
-process_file() {
-    I=$1
-    F=$2
-    print "PROCESSING [$I] [$F]" | tee -a $OUT/main.log
-    fstart=`date +%s`
-    bash -e -x calc_conservation.sh $F $OUT $E $ITER 
-    RET=$?
-    fend=`date +%s`
-    fruntime=$((fend-fstart))
-    print TIME `format_time fruntime` | tee -a $OUT/main.log
-    if [ $RET -eq 0 ]; then
-        print DONE | -a tee $OUT/main.log 
-        echo $file > $OUT/done.list
-    else
-        print FAILED | -a tee $2/main.log
-        echo $file > $OUT/failed.list
-    fi
-}
 
 process_dir() {
     echo PROCESSING DIR $DIR
     echo OUTDIR: $OUT
     echo psiblast evalue: $E
     echo psiblast num_iterations: $ITER
+    echo xargs threads: $THREADS
     echo -----------------------------------------------------
     start=`date +%s`
 
-    I=1
-    for F in `find $1 -name "*.fasta" -type f`; do
-        fname=$(basename "$F")
-        process_file $I $F | tee $OUT/log/$fname.log
-        ((I++))
-    done
+    find $DIR -name "*.fasta" -type f \
+    | xargs -i -P$THREADS bash process_file.sh {} $OUT $E $ITER
 
     end=`date +%s`
     runtime=$((end-start))
-    echo ----------------------------------------------------- 
+    echo -----------------------------------------------------
+    echo OUTDIR: $OUT 
     echo FINISHED IN `format_time runtime`
     echo DONE.
 }
@@ -75,7 +54,7 @@ process_dir() {
 mkdir -p $OUT
 mkdir -p $OUT/log
 
-process_dir $1 $2 $3 $4 | tee $2/debug.log
+process_dir 2>&1 | tee $2/debug.log
 
 
 
