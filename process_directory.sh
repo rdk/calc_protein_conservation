@@ -30,14 +30,18 @@ format_time() {
   printf '%d s\n' $S
 }
 
+print() {
+    echo $@ | tee -a $OUT/main.log    
+}
+
 
 process_dir() {
-    echo PROCESSING DIR $DIR
-    echo OUTDIR: $OUT
-    echo psiblast evalue: $E
-    echo psiblast num_iterations: $ITER
-    echo xargs threads: $THREADS
-    echo -----------------------------------------------------
+    print PROCESSING DIR $DIR
+    print OUTDIR: $OUT
+    print psiblast evalue: $E
+    print psiblast num_iterations: $ITER
+    print xargs threads: $THREADS
+    print -----------------------------------------------------
     start=`date +%s`
 
     find $DIR -name "*.fasta" -type f \
@@ -45,16 +49,16 @@ process_dir() {
 
     end=`date +%s`
     runtime=$((end-start))
-    echo -----------------------------------------------------
-    echo OUTDIR: $OUT 
-    echo FINISHED IN `format_time runtime`
-    echo DONE.
+    print -----------------------------------------------------
+    print OUTDIR: $OUT 
+    print FINISHED IN `format_time runtime`
+    print DONE.
 }
 
 mkdir -p $OUT
 mkdir -p $OUT/log
 
-process_dir 2>&1 | tee $2/debug.log
+process_dir 2>&1 | tee $OUT/debug.log
 
 
 

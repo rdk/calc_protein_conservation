@@ -14,6 +14,7 @@ OUT=$2
 E=$3
 ITER=$4
 
+fname=$(basename $FILE)
 LOGFILE=$OUT/log/$fname.log 
 
 format_time() {
@@ -33,27 +34,32 @@ print() {
     echo $@ | tee -a $OUT/main.log    
 }
 
-fstart=`date +%s`
+process_file() {
+  fstart=`date +%s`
 
-print "PROCESSING [$FILE]" 
-print "LOG: $LOGFILE"
+  print "PROCESSING [$FILE]" 
+  print "LOG: $LOGFILE"
 
-# main call
-bash -e -x calc_conservation.sh $FILE $OUT $E $ITER 2>&1 > $LOGFILE
-RET=$?
+  # main call
+  bash -e -x calc_conservation.sh $FILE $OUT $E $ITER 2>&1 
+  RET=$?
 
-fend=`date +%s`
-fruntime=$((fend-fstart))
+  fend=`date +%s`
+  fruntime=$((fend-fstart))
 
-print "TIME: `format_time fruntime`" 
+  print "TIME: `format_time fruntime`" 
 
-if [ $RET -eq 0 ]; then
-    print DONE 
-    echo $file >> $OUT/done.list
-else
-    print FAILED 
-    echo $file >> $OUT/failed.list
-fi
+  if [ $RET -eq 0 ]; then
+      print DONE 
+      echo $FILE >> $OUT/done.list
+  else
+      print FAILED 
+      echo $FILE >> $OUT/failed.list
+  fi
+}
+
+process_file > $LOGFILE
+
 
 
 
