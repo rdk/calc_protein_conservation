@@ -18,7 +18,7 @@ mkdir -p $outdir/scores
 
 file_base=$(basename "$file")
 alignments_file="$outdir/alignments/$file_base.ali"
-scores_file="$outdir/scores/$file_base.hom"
+scores_file="$outdir/scores/$file_base.hom.gz"
 
 # Create bunch of temp files.
 blastResFile=$(tempfile)
@@ -71,7 +71,7 @@ awk -f sortMuscleOutput.awk < $muscleResultFile > $conservationExtractorInput
 # must be run in its own dir
 (
     cd $JSD_DIR;
-    $PYTHON_CMD $JSD_DIR/score_conservation.py $conservationExtractorInput > $scores_file # - | ./getCol.awk | head -n 1 | sed 's/Score,//' | gzip
+    $PYTHON_CMD $JSD_DIR/score_conservation.py $conservationExtractorInput | gzip -9 > $scores_file # - | ./getCol.awk | head -n 1 | sed 's/Score,//' | gzip
 )
 
 #echo muscleResultFile: $muscleResultFile
