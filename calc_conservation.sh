@@ -13,9 +13,8 @@ psiblast_evalue=$3
 psiblast_iterations=$4
 
 
-mkdir $outdir
-mkdir $outdir/alignments
-mkdir $outdir/scores
+mkdir -p $outdir/alignments
+mkdir -p $outdir/scores
 
 file_base=$(basename "$file")
 alignments_file="$outdir/alignments/$file_base.ali"
