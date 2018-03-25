@@ -38,11 +38,12 @@ process_dir() {
 
         fend=`date +%s`
         fruntime=$((fend-fstart))
+        echo TIME `format_time fruntime`
         if [ $? -eq 0 ]; then
-            echo DONE (`format_time fruntime`)
+            echo DONE 
             echo $file > $2/done.list
         else
-            echo FAILED (`format_time fruntime`)
+            echo FAILED
             echo $file > $2/failed.list
         fi
         ((I++))
