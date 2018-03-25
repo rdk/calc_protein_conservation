@@ -35,7 +35,7 @@ process_dir() {
     echo DONE
 }
 
-mkdirs -p $2
+mkdir -p $2
 
 process_dir $1 $2 $3 $4 | tee $2/log
 
