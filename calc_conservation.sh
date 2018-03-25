@@ -1,8 +1,25 @@
-#!/bin/sh
+#!/bin/bash
 
 # reads fasta file with only one sequence from file $1.
+# $2 ... output directory
+# $3 ... psiblast evalue
+# $4 ... psiblast num_iterations
+
+source local-setenv.sh
 
 file=$1
+outdir=$2
+psiblast_evalue=$3
+psiblast_iterations=$4
+
+
+mkdir $outdir
+mkdir $outdir/alignments
+mkdir $outdir/scores
+
+file_base=$(basename "$file")
+alignments_file="$outdir/alignments/$file_base.ali"
+scores_file="$outdir/scores/$file_base.scores"
 
 # Create bunch of temp files.
 blastResFile=$(tempfile)
@@ -18,19 +35,26 @@ search () {
     db=$1
 
     # Run PSI-BLAST to find ids all similar sequences.
-    psiblast < $file -db $db -outfmt '6 sallseqid qcovs pident' -evalue 1e-5 | ./filter.awk > $blastResFile
+    psiblast < $file \
+     -db $db -outfmt '6 sallseqid qcovs pident' -evalue $psiblast_evalue \
+     -num_threads $PSIBLAST_THREADS -num_iterations $psiblast_iterations \
+     | tee $alignments_file | ./filter.awk > $blastResFile
 
     # Get full sequences.
     blastdbcmd -db $db -entry_batch $blastResFile > $blastSeq
 
     # Filter using CD-HIT.
     cd-hit -i $blastSeq -o $blastResFile >&2
+
+    numSeq=$(grep < $blastResFile '^>' | wc -l)
+    echo Found $numSeq sequences in $db
 }
 
 # Search for similar sequences in SwissProt db.
 search swissprot
 # Get number of sequences found.
 numSeq=$(grep < $blastResFile '^>' | wc -l)
+
 
 # If less than 50 seqs found, fallback to search in UniRef90.
 [ $((numSeq >= 50)) = 0 ] && search uniref90
@@ -44,10 +68,20 @@ cat $blastResFile $modifiedInputFile | muscle -quiet > $muscleResultFile
 awk -f sortMuscleOutput.awk < $muscleResultFile > $conservationExtractorInput
 
 # Run conservation script (Jensen-Shannon divergence: http://compbio.cs.princeton.edu/conservation/)
-python score_conservation.py $conservationExtractorInput # - | ./getCol.awk | head -n 1 | sed 's/Score,//' | gzip
+# must be run in its own dir
+(
+    cd $JSD_DIR;
+    $PYTHON_CMD $JSD_DIR/score_conservation.py $conservationExtractorInput > $scores_file # - | ./getCol.awk | head -n 1 | sed 's/Score,//' | gzip
+)
+
+#echo muscleResultFile: $muscleResultFile
+#echo modifiedInputFile: $modifiedInputFile
+#echo blastSeq: $blastSeq
+#echo blastResFile: $blastResFile
 
 rm $muscleResultFile
 rm $modifiedInputFile
 rm $blastSeq
 rm $blastResFile
-#rm $conservationExtractorInput
+
+##rm $conservationExtractorInput
