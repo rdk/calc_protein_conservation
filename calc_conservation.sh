@@ -27,7 +27,8 @@ modifiedInputFile=$(tempfile)
 
 # change this if you don't want to create extra file with MSA.
 muscleResultFile=$(tempfile)
-conservationExtractorInput=${2:-${file}.muscle}
+#conservationExtractorInput=${2:-${file}.muscle}
+conservationExtractorInput=$(tempfile)
 
 # Function that searches a database and filters the results $1 - database name for psiblast
 search () {
