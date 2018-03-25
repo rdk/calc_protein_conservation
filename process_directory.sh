@@ -16,7 +16,7 @@ process_dir() {
     echo start: `date`
     echo -----------------------------------------------------
 
-    for file in `find $DIR -name "*.fasta" -type f`; do
+    for file in `find $1 -name "*.fasta" -type f`; do
         echo "> PROCESSING [$file]"
         #bash -e -x calc_conservation.sh $file $2 $3 $4 
 
