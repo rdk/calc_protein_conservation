@@ -9,6 +9,15 @@
 # $4 ... psiblast num_iterations
 #
 
+DIR=$1
+OUT=$2
+E=$3
+ITER=$4
+
+print() {
+    echo $@ | tee -a $OUT/main.log    
+}
+
 format_time() {
   local T=$1
   local D=$((T/60/60/24))
@@ -22,30 +31,37 @@ format_time() {
   printf '%d s\n' $S
 }
 
+process_file() {
+    I=$1
+    F=$2
+    print "PROCESSING [$I] [$F]" | tee -a $OUT/main.log
+    fstart=`date +%s`
+    bash -e -x calc_conservation.sh $F $OUT $E $ITER 
+    RET=$?
+    fend=`date +%s`
+    fruntime=$((fend-fstart))
+    print TIME `format_time fruntime` | tee -a $OUT/main.log
+    if [ $RET -eq 0 ]; then
+        print DONE | -a tee $OUT/main.log 
+        echo $file > $OUT/done.list
+    else
+        print FAILED | -a tee $2/main.log
+        echo $file > $OUT/failed.list
+    fi
+}
+
 process_dir() {
-    echo PROCESSING DIR $1
-    echo OUTDIR: $2
-    echo psiblast evalue: $3
-    echo psiblast num_iterations: $4
+    echo PROCESSING DIR $DIR
+    echo OUTDIR: $OUT
+    echo psiblast evalue: $E
+    echo psiblast num_iterations: $ITER
     echo -----------------------------------------------------
     start=`date +%s`
 
     I=1
-    for file in `find $1 -name "*.fasta" -type f`; do
-        echo "PROCESSING [$I] [$file]"
-        fstart=`date +%s`
-        bash -e -x calc_conservation.sh $file $2 $3 $4 
-
-        fend=`date +%s`
-        fruntime=$((fend-fstart))
-        echo TIME `format_time fruntime`
-        if [ $? -eq 0 ]; then
-            echo DONE 
-            echo $file > $2/done.list
-        else
-            echo FAILED
-            echo $file > $2/failed.list
-        fi
+    for F in `find $1 -name "*.fasta" -type f`; do
+        fname=$(basename "$F")
+        process_file $I $F | tee $OUT/log/$fname.log
         ((I++))
     done
 
@@ -56,9 +72,10 @@ process_dir() {
     echo DONE.
 }
 
-mkdir -p $2
+mkdir -p $OUT
+mkdir -p $OUT/log
 
-process_dir $1 $2 $3 $4 | tee $2/log
+process_dir $1 $2 $3 $4 | tee $2/debug.log
 
 
 
