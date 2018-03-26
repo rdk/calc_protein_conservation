@@ -13,12 +13,15 @@ DIR=$1
 DONEF=$2
 
 ALLF=$(tempfile)
+DONESF=$(tempfile)
 
-find $DIR -name "*.fasta" -type f > $ALLF
+find $DIR -name "*.fasta" -type f | sort > $ALLF
+cat $DONEF | sort > $DONESF 
 
 # lines in A but not B
-comm -23 $ALLF $DONEF
+comm -23 $ALLF $DONESF
 
 rm $ALLF
+rm $DONESF
 
 
