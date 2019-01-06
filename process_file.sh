@@ -5,8 +5,8 @@
 #
 # $1 ... input file (fasta)
 # $2 ... outdir (doesn't have to exist)
-# $3 ... psiblast evalue
-# $4 ... psiblast num_iterations
+# $3 ... psiblast param: evalue
+# $4 ... psiblast param: num_iterations
 #
 
 FILE=$1

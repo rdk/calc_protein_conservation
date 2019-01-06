@@ -5,9 +5,9 @@
 #
 # $1 ... input dir (containing fasta files)
 # $2 ... outdir (doesn't have to exist)
-# $3 ... psiblast evalue
-# $4 ... psiblast num_iterations
-# $5 ... threads
+# $3 ... psiblast param: evalue
+# $4 ... psiblast param: num_iterations
+# $5 ... number of threads
 #
 
 DIR=$1
