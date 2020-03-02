@@ -40,6 +40,11 @@ search () {
      -num_threads $PSIBLAST_THREADS -num_iterations $psiblast_iterations \
      | tee $alignments_file | ./filter.awk > $blastResFile
 
+    # blastp < $file \
+    #  -db $db -outfmt '6 sallseqid qcovs pident'  \
+    #  -num_threads $PSIBLAST_THREADS \
+    #  | tee $alignments_file | ./filter.awk > $blastResFile
+
     # Get full sequences.
     blastdbcmd -db $db -entry_batch $blastResFile > $blastSeq
 
@@ -48,6 +53,9 @@ search () {
 
     numSeq=$(grep < $blastResFile '^>' | wc -l)
     echo Found $numSeq sequences in $db
+
+    # log number of found sequences
+    echo "$numSeq  $file\n" >> "$outdir/psiblast_${db}.log"
 }
 
 # Search for similar sequences in SwissProt db.
@@ -59,29 +67,33 @@ numSeq=$(grep < $blastResFile '^>' | wc -l)
 # If less than 50 seqs found, fallback to search in UniRef90.
 [ $((numSeq >= 50)) = 0 ] && search uniref90
 
-# Change the description from the file to find it later.
-sed < $file 's/^>/>query_sekvence|/' > $modifiedInputFile
 
-# Run muscle. Note we need to concat the query sequence in order to get its conservation later.
-cat $blastResFile $modifiedInputFile | muscle -quiet > $muscleResultFile
+# #--------
+# # Change the description from the file to find it later.
+# sed < $file 's/^>/>query_sekvence|/' > $modifiedInputFile
 
-awk -f sortMuscleOutput.awk < $muscleResultFile > $conservationExtractorInput
+# # Run muscle. Note we need to concat the query sequence in order to get its conservation later.
+# cat $blastResFile $modifiedInputFile | muscle -quiet > $muscleResultFile
 
-# Run conservation script (Jensen-Shannon divergence: http://compbio.cs.princeton.edu/conservation/)
-# must be run in its own dir
-(
-    cd $JSD_DIR;
-    $PYTHON_CMD $JSD_DIR/score_conservation.py $conservationExtractorInput | gzip -9 > $scores_file # - | ./getCol.awk | head -n 1 | sed 's/Score,//' | gzip
-)
+# awk -f sortMuscleOutput.awk < $muscleResultFile > $conservationExtractorInput
 
-#echo muscleResultFile: $muscleResultFile
-#echo modifiedInputFile: $modifiedInputFile
-#echo blastSeq: $blastSeq
-#echo blastResFile: $blastResFile
+# # Run conservation script (Jensen-Shannon divergence: http://compbio.cs.princeton.edu/conservation/)
+# # must be run in its own dir
+# (
+#     cd $JSD_DIR;
+#     $PYTHON_CMD $JSD_DIR/score_conservation.py $conservationExtractorInput | gzip -9 > $scores_file # - | ./getCol.awk | head -n 1 | sed 's/Score,//' | gzip
+# )
+# #--------
 
-rm $muscleResultFile
-rm $modifiedInputFile
-rm $blastSeq
-rm $blastResFile
 
+# echo muscleResultFile: $muscleResultFile
+# echo modifiedInputFile: $modifiedInputFile
+# echo blastSeq: $blastSeq
+# echo blastResFile: $blastResFile
+# echo conservationExtractorInput: $conservationExtractorInput 
+
+rm -f $muscleResultFile
+rm -f $modifiedInputFile
+rm -f $blastSeq
+rm -f $blastResFile
 ##rm $conservationExtractorInput

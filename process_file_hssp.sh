@@ -3,16 +3,13 @@
 #
 # calculate conservation score for fasta file
 #
-# $1 ... input file (fasta)
+# $1 ... input file (.fasta.bz2)
 # $2 ... outdir (doesn't have to exist)
-# $3 ... psiblast param: evalue
-# $4 ... psiblast param: num_iterations
 #
 
 FILE=$1
 OUT=$2
-E=$3
-ITER=$4
+
 
 fname=$(basename $FILE)
 LOGFILE=$OUT/log/$fname.log 
@@ -41,7 +38,7 @@ process_file() {
   print "LOG: $LOGFILE"
 
   # main call
-  bash -e -x calc_conservation.sh $FILE $OUT $E $ITER 2>&1 
+  bash -e -x calc_conservation_hssp.sh $FILE $OUT 2>&1 
   RET=$?
 
   fend=`date +%s`
@@ -58,7 +55,7 @@ process_file() {
   fi
 }
 
-process_file | tee $LOGFILE
+process_file 2>&1 | tee $LOGFILE
 
 
 
