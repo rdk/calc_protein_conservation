@@ -30,6 +30,9 @@ muscleResultFile=$(tempfile)
 #conservationExtractorInput=${2:-${file}.muscle}
 conservationExtractorInput=$(tempfile)
 
+# MUSCLE_OPTS="-quiet"
+MUSCLE_OPTS="-quiet -maxiters 4 -diags -sv -distance1 kbit20_3"  # options for fast processing based on http://www.drive5.com/muscle/manual/fastest.html with 4 iterations (default is 16)
+
 # Function that searches a database and filters the results $1 - database name for psiblast
 search () {
     db=$1
@@ -63,7 +66,7 @@ numSeq=$(grep < $blastResFile '^>' | wc -l)
 sed < $file 's/^>/>query_sekvence|/' > $modifiedInputFile
 
 # Run muscle. Note we need to concat the query sequence in order to get its conservation later.
-cat $blastResFile $modifiedInputFile | muscle -quiet > $muscleResultFile
+cat $blastResFile $modifiedInputFile | muscle $MUSCLE_OPTS > $muscleResultFile
 
 awk -f sortMuscleOutput.awk < $muscleResultFile > $conservationExtractorInput
 
